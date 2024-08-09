@@ -25,8 +25,11 @@ A lightweight proxy server designed to bridge the gap between modern HTTPS-based
    ```bash
    npm install
    ```
-4. (Optional) Run the provided script to set up the environment:
+4. Configure printers in config.json (#configuration)
+   ```
+5. (Optional) Run the provided script to set up the environment:
    ```bash
+   chmod +x run-1st.sh
    ./run-1st.sh
    ```
 

@@ -1,5 +1,22 @@
 #!/bin/bash
 
+# Prompt the user to confirm if they have configured printers in config.json
+read -p "Have you configured the printers in config.json? (Y/N): " user_input
+
+# Convert the input to uppercase to handle lower case responses
+user_input=$(echo "$user_input" | tr '[:lower:]' '[:upper:]')
+
+# Check the user's input
+if [ "$user_input" == "Y" ]; then
+    echo "Continuing with the setup..."
+elif [ "$user_input" == "N" ]; then
+    echo "Please configure the printers in config.json before running this script."
+    exit 1
+else
+    echo "Invalid input. Please enter Y or N."
+    exit 1
+fi
+
 # Navigate to the script's directory
 cd "$(dirname "$0")"
 
