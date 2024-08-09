@@ -1,0 +1,11 @@
+{
+  "logLevel": "info",
+  "logFile": "./log/epos-proxy.log",
+  "logFileRetentionDays": 14,
+  "savePath": "./data",
+  "printFileRetentionDays": 30,
+  "hostMap": {
+    "epos-printer1.local": "http://192.168.14.217",
+    "epos-printer2.local": "http://192.168.14.101"
+  }
+}

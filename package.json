@@ -1,0 +1,17 @@
+{
+  "name": "epos-proxy",
+  "version": "1.0.0",
+  "description": "A proxy server for ePOS printing to printers that does not support https",
+  "main": "proxyServer.js",
+  "scripts": {
+    "start": "node proxyServer.js"
+  },
+  "dependencies": {
+    "express": "^4.17.1",
+    "http-proxy-middleware": "^3.0.0",
+    "winston": "^3.3.3",
+    "winston-daily-rotate-file": "^5.0.0"
+  },
+  "author": "Kim Asplund",
+  "license": "ISC"
+}
