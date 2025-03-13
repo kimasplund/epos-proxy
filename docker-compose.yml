@@ -1,0 +1,29 @@
+version: '3'
+
+services:
+  epos-proxy:
+    build: ./app
+    container_name: epos-proxy
+    restart: unless-stopped
+    ports:
+      - "443:443"
+      - "53:53/udp"  # DNS server port (UDP)
+    volumes:
+      - ./config.json:/app/config.json
+      - ./printers.config:/app/printers.config
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ./cert:/app/cert
+    environment:
+      - TZ=Europe/Stockholm
+
+  watchtower:
+    image: containrrr/watchtower
+    container_name: watchtower
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: --interval 86400 --cleanup
+    environment:
+      - TZ=Europe/Stockholm
+

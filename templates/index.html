@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ app_name }} - Web Interface</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <script>
+        // Global config for frontend
+        window.appConfig = {
+            domainSuffix: "{{ domain_suffix }}",
+            proxyHostname: "{{ proxy_hostname }}"
+        };
+    </script>
+</head>
+<body>
+    <header>
+        <div class="header-container">
+            <h1>{{ app_name }} Server</h1>
+            <nav>
+                <ul>
+                    <li><a href="/web/dashboard">Dashboard</a></li>
+                    <li><a href="/web/printers">Printers</a></li>
+                    <li><a href="/web/print-jobs">Print Jobs</a></li>
+                    <li><a href="/web/email-templates">Email Templates</a></li>
+                    <li><a href="/web/settings">Settings</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main id="app">
+        <div class="container">
+            <div id="spa-content">
+                <!-- SPA content will be rendered here -->
+                <div class="loading">
+                    <p>Loading application...</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="footer-container">
+            <p>ePOS Proxy Server is available at: <a href="https://{{ proxy_hostname }}.{{ domain_suffix }}/">https://{{ proxy_hostname }}.{{ domain_suffix }}/</a></p>
+            <p>Configured printers are available at: https://[printer-name].{{ domain_suffix }}/</p>
+            <p>&copy; {{ year if year else '2023' }} ePOS Proxy Server</p>
+        </div>
+    </footer>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html> 

@@ -1,6 +1,6 @@
 {
   "logLevel": "info",
-  "logFile": "./logs/epos-proxy.log",
+  "logFile": "./log/epos-proxy.log",
   "logFileRetentionDays": 14,
   "savePath": "./data",
   "printFileRetentionDays": 30,

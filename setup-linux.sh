@@ -83,23 +83,33 @@ case $choice in
             exit 1
         fi
         
+        # Create simplified printers.config if it doesn't exist
+        if [ ! -f "printers.config" ]; then
+            print_message "Creating simplified printer configuration file..."
+            cat > printers.config << EOL
+# ePOS Printer Configuration
+# Format: printer_name = ip_address
+#
+# Example:
+# kitchen-printer = 192.168.1.100
+# 
+# You only need to restart the container after changing this file:
+# docker-compose restart epos-proxy
+
+epos-printer1.local = 192.168.1.100
+epos-printer2.local = 192.168.1.101
+EOL
+            print_message "Created printers.config. Please edit it with your printer details."
+        fi
+        
         # Create required directories
         print_message "Creating required directories..."
         mkdir -p app/cert app/log app/data
         
-        # Generate SSL certificates if they don't exist
-        if [ ! -f "app/cert/server.cert" ]; then
-            print_message "SSL certificates not found. Generating..."
-            
-            # Check if OpenSSL is available
-            if ! command_exists openssl; then
-                print_error "OpenSSL not found. Please install OpenSSL or manually create SSL certificates."
-                print_message "Place your certificates at app/cert/server.cert and app/cert/server.key"
-                exit 1
-            fi
-            
-            # Generate self-signed certificate
-            (cd app/cert && openssl req -nodes -new -x509 -keyout server.key -out server.cert -days 3650)
+        # Check if certificates exist
+        if [ ! -f "app/cert/server.cert" ] || [ ! -f "app/cert/server.key" ]; then
+            print_message "SSL certificates not found. These will be automatically generated when the Docker container starts."
+            print_message "No action required for Docker deployment."
         fi
         
         # Start Docker containers

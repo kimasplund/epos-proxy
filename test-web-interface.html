@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ePOS Proxy - Test Interface</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2 {
+            color: #0066cc;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            padding: 8px 15px;
+            background: #0066cc;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #004c99;
+        }
+        pre {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        #result {
+            margin-top: 20px;
+        }
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            max-width: 400px;
+            margin-bottom: 15px;
+        }
+        .auth-form input {
+            margin-bottom: 10px;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .token-display {
+            background-color: #e8f5e9;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+            word-break: break-all;
+        }
+        .auth-status {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .auth-status.authenticated {
+            color: green;
+        }
+        .auth-status.not-authenticated {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <h1>ePOS Proxy - Web Interface Test</h1>
+    
+    <div class="section">
+        <h2>Authentication</h2>
+        <p>Default admin credentials are usually username: "admin" and password: "admin"</p>
+        <div class="auth-status not-authenticated" id="authStatus">Not Authenticated</div>
+        
+        <form class="auth-form" id="authForm">
+            <input type="text" id="username" placeholder="Username (e.g. admin)" value="admin" required>
+            <input type="password" id="password" placeholder="Password (e.g. admin)" value="admin" required>
+            <button type="submit">Login</button>
+        </form>
+        
+        <div class="token-display" id="tokenDisplay" style="display: none;">
+            <strong>Access Token:</strong>
+            <div id="accessToken"></div>
+            <button onclick="logout()" style="margin-top: 10px;">Logout</button>
+        </div>
+    </div>
+    
+    <div class="section">
+        <h2>API Endpoints</h2>
+        <button onclick="testEndpoint('/health')">Health</button>
+        <button onclick="testEndpoint('/printers')">Printers</button>
+        <button onclick="testEndpoint('/dns')">DNS Status</button>
+        <button onclick="testEndpoint('/config')">Config Status</button>
+        <button onclick="testEndpoint('/files')">Print Files</button>
+    </div>
+    
+    <div class="section">
+        <h2>Web API Endpoints</h2>
+        <p>Note: These endpoints require authentication</p>
+        <button onclick="testEndpoint('/api/users/me')">Current User</button>
+        <button onclick="testEndpoint('/api/email/templates')">Email Templates</button>
+        <button onclick="testEndpoint('/api/email/themes')">Email Themes</button>
+        <button onclick="testEndpoint('/api/print_jobs')">Print Jobs</button>
+        <button onclick="testEndpoint('/api/branding')">Company Branding</button>
+        <button onclick="testEndpoint('/api/token')">Get Token (POST only)</button>
+    </div>
+    
+    <div class="section">
+        <h2>Web Interface Routes</h2>
+        <button onclick="testEndpoint('/web')">Dashboard</button>
+        <button onclick="testEndpoint('/web/print-jobs')">Print Jobs Page</button>
+        <button onclick="testEndpoint('/web/settings')">Settings Page</button>
+        <button onclick="testEndpoint('/web/templates')">Templates Page</button>
+    </div>
+    
+    <div id="result">
+        <h2>Result:</h2>
+        <pre id="resultContent">Click a button to test an endpoint</pre>
+    </div>
+    
+    <script>
+        // Variables to store auth state
+        let accessToken = null;
+        
+        // Check if we have a token in localStorage
+        document.addEventListener('DOMContentLoaded', () => {
+            const storedToken = localStorage.getItem('eposProxyToken');
+            if (storedToken) {
+                accessToken = storedToken;
+                updateAuthDisplay(true);
+            }
+            
+            // Set up auth form
+            document.getElementById('authForm').addEventListener('submit', handleLogin);
+        });
+        
+        // Handle login form submission
+        async function handleLogin(event) {
+            event.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            // Create form data (OAuth2 password flow expects form data)
+            const formData = new URLSearchParams();
+            formData.append('username', username);
+            formData.append('password', password);
+            
+            try {
+                const response = await fetch('https://localhost/api/token', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: formData
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Login failed: ${response.status} ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                accessToken = data.access_token;
+                
+                // Store token in localStorage
+                localStorage.setItem('eposProxyToken', accessToken);
+                
+                // Update UI
+                updateAuthDisplay(true);
+                
+                // Show success message
+                document.getElementById('resultContent').textContent = 'Login successful! Token received.';
+                
+            } catch (error) {
+                console.error('Login error:', error);
+                document.getElementById('resultContent').textContent = `Login error: ${error.message}`;
+                updateAuthDisplay(false);
+            }
+        }
+        
+        // Update authentication display
+        function updateAuthDisplay(isAuthenticated) {
+            const authStatus = document.getElementById('authStatus');
+            const tokenDisplay = document.getElementById('tokenDisplay');
+            const accessTokenElement = document.getElementById('accessToken');
+            
+            if (isAuthenticated && accessToken) {
+                authStatus.textContent = 'Authenticated';
+                authStatus.className = 'auth-status authenticated';
+                
+                tokenDisplay.style.display = 'block';
+                accessTokenElement.textContent = accessToken;
+            } else {
+                authStatus.textContent = 'Not Authenticated';
+                authStatus.className = 'auth-status not-authenticated';
+                
+                tokenDisplay.style.display = 'none';
+                accessTokenElement.textContent = '';
+            }
+        }
+        
+        // Function to test endpoints with authentication if needed
+        async function testEndpoint(endpoint) {
+            const resultContainer = document.getElementById('resultContent');
+            resultContainer.textContent = 'Loading...';
+            
+            try {
+                const headers = {
+                    'Accept': 'application/json'
+                };
+                
+                // Add auth token for API endpoints if available
+                if (accessToken && endpoint.startsWith('/api')) {
+                    headers['Authorization'] = `Bearer ${accessToken}`;
+                }
+                
+                const response = await fetch(`https://localhost${endpoint}`, {
+                    method: 'GET',
+                    headers: headers
+                });
+                
+                let result;
+                try {
+                    result = await response.json();
+                    result = JSON.stringify(result, null, 2);
+                } catch (e) {
+                    result = await response.text();
+                }
+                
+                resultContainer.textContent = `Status: ${response.status} ${response.statusText}\n\n${result}`;
+            } catch (error) {
+                resultContainer.textContent = `Error: ${error.message}`;
+            }
+        }
+        
+        // Logout function
+        function logout() {
+            localStorage.removeItem('eposProxyToken');
+            accessToken = null;
+            updateAuthDisplay(false);
+            document.getElementById('resultContent').textContent = 'Logged out successfully.';
+        }
+    </script>
+</body>
+</html> 
